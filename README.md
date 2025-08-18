@@ -1,7 +1,6 @@
-# UniMove
+# UniMove🚶‍♂️🏙️
 
-A pytorch implementation for the paper: **UniMove : A Unified Model for Multi-city Human Mobility Prediction**
-
+This is the official PyTorch implementation for our paper, **UniMove: A Unified Model for Multi-city Human Mobility Prediction**, accepted at ACM SIGSPATIAL 2025. 
 
 ## ⚙️ Installation
 ### Environment
@@ -48,3 +47,14 @@ python main.py --device cuda:0 --city nanchang shanghai lasa --target_city nanch
 ```
 
 Once your model is trained, you will find the logs recording the training process in the  `./logs_{args.city}` directory.
+
+## 📜 Citation
+If you find our work or this repository useful for your research, please consider citing our paper:
+```
+@article{han2025unimove,
+  title={UniMove: A Unified Model for Multi-city Human Mobility Prediction},
+  author={Han, Chonghua and Yuan, Yuan and Liu, Yukun and Ding, Jingtao and Feng, Jie and Li, Yong},
+  journal={arXiv preprint arXiv:2508.06986},
+  year={2025}
+}g
+```
