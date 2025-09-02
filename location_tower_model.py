@@ -50,13 +50,13 @@ class Location_Tower(nn.Module):
     def __init__(self, config, num_cross_layers=2):
         super().__init__()
         self.lon_lat_embedding = nn.Linear(2, config.n_embd // 2)
-        self.poi_feature_embedding = nn.Linear(28, config.n_embd // 4)
+        self.poi_feature_embedding = nn.Linear(1874, config.n_embd // 4)
         self.flow_rank_embedding = nn.Embedding(9, config.n_embd // 4)
         self.dcn = DCN(config, num_cross_layers)
 
     def forward(self, vocab):
-        vocab_poi = vocab[:, :28]
-        vocab_lon_lat = vocab[:, 28:30]
+        vocab_poi = vocab[:, :1874]
+        vocab_lon_lat = vocab[:, 1874 : 1874 + 2]
         vocab_rank = vocab[:, -1].to(torch.long)
 
         vocab_poi_embedding = self.poi_feature_embedding(vocab_poi)  # Shape: [batch_size, n_embd // 4]

@@ -96,14 +96,15 @@ def get_dataloader(data_root, split, B, T, few_shot):
 
 
 # 示例用法
-# if __name__ == "__main__":
-#     data_root = '../traj_dataset/mini/val'
-#     city = ['nanchang','lasa']  # 或 'valid', 'test'
-#     B = 16
-#     T = 144
-#     dataloader = get_dataloader(data_root, city, B, T,few_shot=1.0)
-#     for batch_no, train_batch in enumerate(dataloader, start=1):
-#         print(train_batch[0].size())
-#         print(train_batch[1].size())
-#         print(train_batch[2].size())
-#         print(train_batch[3][0])
+if __name__ == "__main__":
+    data_root = "traj_dataset/massive_steps/val"
+    city = ["melbourne"]  # 或 'valid', 'test'
+    B = 16
+    T = 144
+    dataloader = get_dataloader(data_root, city, B, T, few_shot=1.0)
+    for batch_no, train_batch in enumerate(dataloader, start=1):
+        print(train_batch[0].size())
+        print(train_batch[1].size())
+        print(train_batch[2].size())
+        print(train_batch[3][0])
+        break

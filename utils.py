@@ -109,7 +109,7 @@ def train_stop(model, train_loader, valid_loaders, log_dir, lr, epoch, valid_ste
 
 
 def evaluate(model, test_loader, log_dir, B, city, device):
-    log_file_test = os.path.join(log_dir, f"log_{city}_test.txt")
+    log_file_test = os.path.join(log_dir, f"log_{'_'.join(city)}_test.txt")
     with open(log_file_test, "w") as f:  # open for writing to clear the file
         pass
     model.load_state_dict(torch.load(log_dir + f"/model_{city[0]}.pth"))
@@ -137,7 +137,8 @@ def evaluate(model, test_loader, log_dir, B, city, device):
             pred = output["logits"]  # [B T vocab_size]
             pred[:, :, 0] = float("-inf")
             y_test = y_test.to(device)
-            for b in range(B):
+            batch_size = pred.size(0)
+            for b in range(batch_size):
                 _, pred_indices = torch.topk(pred[b], 100)
                 valid_mask = y_test[b] > 0
                 valid_y_val = y_test[b][valid_mask]

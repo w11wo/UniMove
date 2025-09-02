@@ -8,7 +8,7 @@ from dataloader import TrajDataset, get_dataloader
 import random
 import argparse
 from torch.utils.data import DataLoader
-from utils import train, evaluate, train_stop
+from utils import evaluate, train_stop
 from model import Traj_Config, Traj_Model
 
 
@@ -46,9 +46,9 @@ parser.add_argument("--B", type=int, default=16, help="batch size")
 parser.add_argument("--T", type=int, default=144, help="max length 48*3days")
 parser.add_argument("--city", nargs="+", default=["nanchang", "shanghai", "lasa"])
 parser.add_argument("--target_city", nargs="+", default=["nanchang"])
-parser.add_argument("--train_root", type=str, default="../traj_dataset/mini/train")
-parser.add_argument("--val_root", type=str, default="../traj_dataset/mini/val")
-parser.add_argument("--test_root", type=str, default="../traj_dataset/mini/test")
+parser.add_argument("--train_root", type=str, default="traj_dataset/massive_steps/train")
+parser.add_argument("--val_root", type=str, default="traj_dataset/massive_steps/val")
+parser.add_argument("--test_root", type=str, default="traj_dataset/massive_steps/test")
 parser.add_argument("--few_shot", type=float, default=1.0)
 # train
 parser.add_argument("--epoch", type=int, default=50)
@@ -59,7 +59,7 @@ print(args)
 set_random_seed(args.seed)
 
 
-log_dir = f"{args.city}/{args.n_layer}_{args.n_embd}/log_{args.few_shot}"
+log_dir = f"models/{'_'.join(args.city)}/{args.n_layer}_{args.n_embd}/log_{args.few_shot}"
 os.makedirs(log_dir, exist_ok=True)
 
 
@@ -74,7 +74,7 @@ train_dataset = TrajDataset(args.train_root, args.city, args.B, args.T, args.few
 train_loader = DataLoader(train_dataset, batch_size=args.B, shuffle=False)
 
 
-valid_step_interval = len(train_dataset) // args.B // 4  # 每训练1/4个epoch验证一次模型
+valid_step_interval = len(train_dataset) // args.B
 
 val_loader = []
 for city in args.target_city:
@@ -92,7 +92,7 @@ train_stop(
     valid_step_interval=valid_step_interval,
     device=args.device,
     citys=args.target_city,
-    patience=10,
+    patience=3,
 )
 
 for city in args.target_city:
