@@ -71,7 +71,7 @@ class TrajDataset(Dataset):
                 for _ in range(self.T + 1 - len(traj)):
                     traj.append([int(0), int(0)])
                 traj = torch.tensor(traj, dtype=torch.long)
-                data.append([traj, filename.split("/")[-1].split("_")[0]])
+                data.append([traj, "_".join(filename.split("/")[-1].split("_")[:-1])])
             if self.few_shot:
                 length = int(self.few_shot * len(data))
                 data = data[:length]
