@@ -3,6 +3,7 @@ import torch
 from torch.optim import Adam
 from tqdm import tqdm
 import os
+from torch.amp import autocast, GradScaler
 
 
 def train_stop(model, train_loader, valid_loaders, log_dir, lr, epoch, valid_step_interval, device, citys, patience=10):
@@ -18,6 +19,8 @@ def train_stop(model, train_loader, valid_loaders, log_dir, lr, epoch, valid_ste
     lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[p1, p2, p3], gamma=0.4)
     best_valid_loss_dict = {}
     patience_counter_dict = {}
+
+    scaler = GradScaler()
 
     for city in citys:
         best_valid_loss_dict[f"{city}"] = 1e10
@@ -40,12 +43,20 @@ def train_stop(model, train_loader, valid_loaders, log_dir, lr, epoch, valid_ste
                 vocab = np.pad(vocab, ((2, 0), (0, 0)), mode="constant", constant_values=0)
                 vocab = torch.from_numpy(vocab)
                 vocab = vocab.to(torch.float32)
-                output = model(x_train, ts, y_train, vocab, device)
-                loss = output["loss"]
-                loss.backward()
+
+                with autocast(device_type="cuda", dtype=torch.bfloat16):
+                    output = model(x_train, ts, y_train, vocab, device)
+                    loss = output["loss"]
+
+                # Scale the loss and call backward
+                scaler.scale(loss).backward()
+
                 avg_loss += loss.item()
                 loss_avg = avg_loss / batch_no
-                optimizer.step()
+
+                scaler.step(optimizer)
+                scaler.update()
+
                 with open(log_file_train, "a") as f:
                     f.write(f"{epoch_no}\t{batch_no}\t train \t{loss_avg:.6f}\n")
                 it.set_postfix(
@@ -71,8 +82,11 @@ def train_stop(model, train_loader, valid_loaders, log_dir, lr, epoch, valid_ste
                                     vocab = np.pad(vocab, ((2, 0), (0, 0)), mode="constant", constant_values=0)
                                     vocab = torch.from_numpy(vocab)
                                     vocab = vocab.to(torch.float32)
-                                    output = model(x_val, ts, y_val, vocab, device)
-                                    loss = output["loss"]
+
+                                    with autocast(device_type="cuda", dtype=torch.bfloat16):
+                                        output = model(x_val, ts, y_val, vocab, device)
+                                        loss = output["loss"]
+
                                     avg_loss_valid += loss.item()
                                     loss_avg_valid = avg_loss_valid / batch_no_val
                                     it.set_postfix(
@@ -131,8 +145,11 @@ def evaluate(model, test_loader, log_dir, B, city, device):
             vocab = np.pad(vocab, ((2, 0), (0, 0)), mode="constant", constant_values=0)
             vocab = torch.from_numpy(vocab)
             vocab = vocab.to(torch.float32)
-            output = model(x_test, ts, y_test, vocab, device)
-            loss = output["loss"]
+
+            with autocast(device_type="cuda", dtype=torch.bfloat16):
+                output = model(x_test, ts, y_test, vocab, device)
+                loss = output["loss"]
+
             val_loss_accum += loss.detach()
             pred = output["logits"]  # [B T vocab_size]
             pred[:, :, 0] = float("-inf")
