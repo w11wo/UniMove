@@ -9,7 +9,7 @@ for city in beijing melbourne shanghai sydney tokyo; do
         --B 8
 done
 
-for city in kuwait_city moscow; do
+for city in istanbul kuwait_city moscow new_york petaling_jaya sao_paulo; do
     python main.py \
         --device cuda:0 \
         --city $city \
@@ -20,5 +20,5 @@ for city in kuwait_city moscow; do
         --B 4
 done
 
-# for city in istanbul jakarta new_york petaling_jaya sao_paulo; do
+# for city in  jakarta; do
 # done
