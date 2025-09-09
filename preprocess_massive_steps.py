@@ -219,12 +219,19 @@ def main(args):
     preprocess_trajectories(validation_df, trajectory_dir, args.city, "val")
 
     # load all POI categories
-    all_categories = []
-    with open(massive_steps_path / "semantic-trails" / "categories.csv", "r") as f:
+    all_categories = set()
+    category2schema = {}
+    with open(massive_steps_path / "semantic-trails" / "mapping.csv", "r") as f:
         lines = csv.reader(f, delimiter=",")
         for line in lines:
-            category, *_ = line
-            all_categories.append(category)
+            category_id, _, schema = line
+            schema = schema.replace("schema:", "")
+            category2schema[category_id] = schema
+            all_categories.add(schema)
+
+    all_categories = sorted(all_categories)
+    # remap venue_category_id to schema.org's 162 categories
+    all_df["venue_category_id"] = all_df["venue_category_id"].apply(lambda x: category2schema[x])
 
     # create location_feature array
     all_poi_info = preprocess_locations(all_df, all_categories)

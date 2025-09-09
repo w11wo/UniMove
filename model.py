@@ -122,7 +122,7 @@ class Traj_Model(nn.Module):
             dict(
                 time_embedding=nn.Embedding(48, config.n_embd),
                 lon_lat_embedding=nn.Linear(2, config.n_embd // 2),
-                poi_feature_embedding=nn.Linear(28, config.n_embd // 4),
+                poi_feature_embedding=nn.Linear(324, config.n_embd // 4),
                 flow_rank_embedding=nn.Embedding(9, config.n_embd // 4),
                 wpe=nn.Embedding(config.block_size, config.n_embd),
                 h=nn.ModuleList([Block(config) for _ in range(config.n_layer)]),
@@ -154,8 +154,8 @@ class Traj_Model(nn.Module):
         B, T = his.size()
         padding_mask = (his == 0).to(torch.bool)
         ts = ts.to(torch.long)
-        poi_feature = loc_feature[:, :, :28]
-        lon_lat = loc_feature[:, :, 28:30]
+        poi_feature = loc_feature[:, :, :324]
+        lon_lat = loc_feature[:, :, 324 : 324 + 2]
         rank = loc_feature[:, :, -1].to(torch.long)
         vocab = vocab.to(device)
         assert (

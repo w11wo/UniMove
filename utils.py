@@ -131,6 +131,7 @@ def evaluate(model, test_loader, log_dir, B, city, device):
     acc1 = 0
     acc3 = 0
     acc5 = 0
+    ndcg5 = 0
     size = 0
     val_loss_accum = 0.0
     batch = 0
@@ -173,10 +174,18 @@ def evaluate(model, test_loader, log_dir, B, city, device):
                 acc3 += a3
                 acc5 += a5
 
+                # NDCG@5
+                for i in range(l):
+                    ground_truth = valid_y_val[i].item()
+                    predictions_top5 = valid_pred_indices[i, 0:5].tolist()
+                    if ground_truth in predictions_top5:
+                        ndcg5 += 1 / np.log2(predictions_top5.index(ground_truth) + 1 + 1)
+
     val_loss_accum = val_loss_accum / batch
     acc1 = acc1 / size
     acc3 = acc3 / size
     acc5 = acc5 / size
+    ndcg5 = ndcg5 / size
 
     with open(log_file_test, "a") as f:
-        f.write(f"{val_loss_accum}\t{acc1:.6f}\t{acc3:.6f}\t{acc5:.6f}\t{size}\n")
+        f.write(f"{val_loss_accum}\t{acc1:.6f}\t{acc5:.6f}\t{ndcg5:.6f}\t{size}\n")
