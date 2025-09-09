@@ -27,7 +27,10 @@ class TrajDataset(Dataset):
         self.data = []
 
         batches = {
-            shard: [self.data_city[shard][i : i + self.B] for i in range(0, len(self.data_city[shard]), self.B)]
+            shard: [
+                self.data_city[shard][i : i + self.B]
+                for i in range(0, len(self.data_city[shard]) - len(self.data_city[shard]) % self.B, self.B)
+            ] # drop last batch to avoid cross-city batches
             for shard in self.shards
         }
 
