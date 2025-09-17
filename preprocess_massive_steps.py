@@ -37,42 +37,6 @@ def parse_args():
 def preprocess_trajectories(df, output_dir, city, split):
     """Preprocess trajectories from Massive-STEPS CSV to UniMove plaintext format."""
 
-    def _group_trajectories(user_df, time_window=timedelta(hours=72)):
-        """Group check-ins into trajectories based on time window.
-        UniMove uses 72 hours as the default time window.
-        Also collapse timestamps into day of week and 30-minute intervals.
-        """
-        user_df = user_df.sort_values("timestamp").copy()
-
-        traj_ids, time_intervals, days_of_week = [], [], []
-        curr_traj_id = 0
-        traj_start = None
-
-        for ts in user_df["timestamp"]:
-            ts = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
-            if traj_start is None:
-                traj_start = ts
-
-            # check if still inside trajectory window
-            if ts >= traj_start + time_window:
-                # start a new trajectory
-                curr_traj_id += 1
-                traj_start = ts
-
-            traj_ids.append(f"{user_df['user_id'].iloc[0]}_{curr_traj_id}")
-
-            # collapse to nearest day of week
-            days_of_week.append(ts.weekday())
-            # collapse to nearest 30-minute interval
-            minutes_since_midnight = ts.hour * 60 + ts.minute
-            interval_idx = minutes_since_midnight // 30  # 0..47
-            time_intervals.append(interval_idx)
-
-        user_df["traj_id"] = traj_ids
-        user_df["day_of_week"] = days_of_week
-        user_df["time_interval"] = time_intervals
-        return user_df
-
     def _convert_to_plaintext(traj_df):
         """Convert a trajectory dataframe to plaintext format, following the UniMove format:
         `venue_id,day_of_week,time_interval;venue_id,day_of_week,time_interval;...`
@@ -91,13 +55,15 @@ def preprocess_trajectories(df, output_dir, city, split):
     output_path = output_dir / split / f"{city}_{split}.txt"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    user_df = df.copy().groupby("user_id").apply(_group_trajectories, include_groups=True).reset_index(drop=True)
-    trajectories = user_df.groupby("traj_id").apply(_convert_to_plaintext, include_groups=False)
-    trajectory_user_ids = [traj_id.split("_")[0] for traj_id in trajectories.index]
+    # collapse timestamp to day of week and 30-min interval
+    df["day_of_week"] = pd.to_datetime(df["timestamp"]).dt.weekday
+    df["time_interval"] = (pd.to_datetime(df["timestamp"]).dt.hour * 60 + pd.to_datetime(df["timestamp"]).dt.minute) // 30
+
+    trajectories = df.groupby("trail_id").apply(_convert_to_plaintext, include_groups=False)
 
     with open(output_path, "w") as f:
-        for user_id, trajectory in zip(trajectory_user_ids, trajectories):
-            f.write(f"{user_id} {trajectory}\n")
+        for trail_id, trajectory in zip(trajectories.index, trajectories):
+            f.write(f"{trail_id} {trajectory}\n")
 
 
 def preprocess_locations(all_df, all_categories):
