@@ -16,6 +16,7 @@ def parse_args():
         type=str,
         required=True,
         choices=[
+            "bandung",
             "beijing",
             "istanbul",
             "jakarta",
@@ -23,10 +24,12 @@ def parse_args():
             "melbourne",
             "moscow",
             "new_york",
+            "palembang",
             "petaling_jaya",
             "sao_paulo",
             "shanghai",
             "sydney",
+            "tangerang",
             "tokyo",
         ],
     )
