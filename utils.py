@@ -158,7 +158,9 @@ def evaluate(model, test_loader, log_dir, B, city, device):
             batch_size = pred.size(0)
             for b in range(batch_size):
                 _, pred_indices = torch.topk(pred[b], 100)
-                valid_mask = y_test[b] > 0
+                # valid_mask = y_test[b] > 0
+                valid_mask = (y_test[b] == 1).nonzero(as_tuple=True)[0] - 1  # only index last location before EOS
+                valid_mask = valid_mask[valid_mask >= 0]  # ensure non-negative indices
                 valid_y_val = y_test[b][valid_mask]
                 valid_pred_indices = pred_indices[valid_mask]
 

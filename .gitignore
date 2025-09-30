@@ -197,4 +197,5 @@ cython_debug/
 notebooks/
 models/
 traj_dataset/massive_steps/
+traj_dataset/fsq/
 location_feature/

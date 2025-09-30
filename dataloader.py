@@ -30,7 +30,7 @@ class TrajDataset(Dataset):
             shard: [
                 self.data_city[shard][i : i + self.B]
                 for i in range(0, len(self.data_city[shard]) - len(self.data_city[shard]) % self.B, self.B)
-            ] # drop last batch to avoid cross-city batches
+            ]  # drop last batch to avoid cross-city batches
             for shard in self.shards
         }
 
@@ -73,6 +73,11 @@ class TrajDataset(Dataset):
                 traj.append([int(1), int(0)])
                 for _ in range(self.T + 1 - len(traj)):
                     traj.append([int(0), int(0)])
+
+                # left-truncate if too long
+                if len(traj) > self.T + 1:
+                    traj = traj[-(self.T + 1) :]
+
                 traj = torch.tensor(traj, dtype=torch.long)
                 data.append([traj, "_".join(filename.split("/")[-1].split("_")[:-1])])
             if self.few_shot:
